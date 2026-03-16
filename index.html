@@ -34,8 +34,8 @@ AFRAME.registerComponent('drag-rotate-component', {
             var temp_x = event.clientX - this.x_cord;
             var temp_y = event.clientY - this.y_cord;
             // Gira o objeto nos eixos Y e X
-            this.el.object3D.rotation.y += temp_x * (this.data.speed / 200);
-            this.el.object3D.rotation.x += temp_y * (this.data.speed / 200);
+            this.el.object3D.rotation.y += temp_x * (this.data.speed / 100);
+            this.el.object3D.rotation.x += temp_y * (this.data.speed / 100);
             this.x_cord = event.clientX;
             this.y_cord = event.clientY;
           }

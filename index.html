@@ -41,7 +41,18 @@ AFRAME.registerComponent('drag-rotate-component', {
           }
         }
       });
+
+      //Versionamento para impedir erro de cache
+    window.addEventListener('DOMContentLoaded', () => {
+    const v = Math.random(); // Gera um número aleatório
+    const assets = document.querySelectorAll('a-asset-item');
+    assets.forEach(asset => {
+      const currentSrc = asset.getAttribute('src');
+      asset.setAttribute('src', currentSrc + '?v=' + v);
+    });
+  });
     </script>
+    
 
     <a-scene background="color: #111">
       <a-assets>

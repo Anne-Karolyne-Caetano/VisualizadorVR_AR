@@ -2,69 +2,85 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Girar Modelo 3D - Quest 3S</title>
+    <title>Vitrine VR - Quest 3S</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      /* Estilo apenas para o botão de 'Enter VR' ficar visível */
+      .a-enter-vr { bottom: 20px; right: 20px; }
+    </style>
   </head>
   <body>
 
     <script>
-
-AFRAME.registerComponent('drag-rotate-component', {
-        schema: { speed: { default: 1 } },
+      // 1. COMPONENTE DE ROTAÇÃO (O que já usamos)
+      AFRAME.registerComponent('drag-rotate', {
+        schema: { speed: { default: 2 } },
         init: function () {
           this.ifMouseDown = false;
           this.x_cord = 0;
-          this.y_cord = 0;
-          
-          // Eventos para Mouse e Toque (Quest)
-          document.addEventListener('mousedown', this.OnDocumentMouseDown.bind(this));
-          document.addEventListener('mouseup', this.OnDocumentMouseUp.bind(this));
-          document.addEventListener('mousemove', this.OnDocumentMouseMove.bind(this));
-        },
-        OnDocumentMouseDown: function (event) {
-          this.ifMouseDown = true;
-          this.x_cord = event.clientX;
-          this.y_cord = event.clientY;
-        },
-        OnDocumentMouseUp: function () {
-          this.ifMouseDown = false;
-        },
-        OnDocumentMouseMove: function (event) {
-          if (this.ifMouseDown) {
-            var temp_x = event.clientX - this.x_cord;
-            var temp_y = event.clientY - this.y_cord;
-            // Gira o objeto nos eixos Y e X
-            this.el.object3D.rotation.y += temp_x * (this.data.speed / 100);
-            this.el.object3D.rotation.x += temp_y * (this.data.speed / 100);
-            this.x_cord = event.clientX;
-            this.y_cord = event.clientY;
-          }
+          document.addEventListener('mousedown', (e) => { this.ifMouseDown = true; this.x_cord = e.clientX; });
+          document.addEventListener('mouseup', () => { this.ifMouseDown = false; });
+          document.addEventListener('mousemove', (e) => {
+            if (this.ifMouseDown && !document.getElementById('menu-hub').getAttribute('visible')) {
+              var temp_x = e.clientX - this.x_cord;
+              this.el.object3D.rotation.y += temp_x * (this.data.speed / 200);
+              this.x_cord = e.clientX;
+            }
+          });
         }
       });
 
-      //Versionamento para impedir erro de cache
-    window.addEventListener('DOMContentLoaded', () => {
-    const v = Math.random(); // Gera um número aleatório
-    const assets = document.querySelectorAll('a-asset-item');
-    assets.forEach(asset => {
-      const currentSrc = asset.getAttribute('src');
-      asset.setAttribute('src', currentSrc + '?v=' + v);
-    });
-  });
-    </script>
-    
+      // 2. FUNÇÃO PARA TROCAR DE CENA (Lógica de Programador)
+      function irParaModelo(idDoModelo) {
+        // Esconde o menu e mostra o visualizador
+        document.getElementById('menu-hub').setAttribute('visible', 'false');
+        document.getElementById('visualizador').setAttribute('visible', 'true');
+        
+        // Atualiza o src do modelo 3D
+        const modeloPrincipal = document.getElementById('modelo-real');
+        modeloPrincipal.setAttribute('gltf-model', '#' + idDoModelo);
+        
+        // Reseta a rotação para o padrão
+        modeloPrincipal.object3D.rotation.set(0, 0, 0);
+      }
 
-    <a-scene background="color: #fff">
+      function voltarAoMenu() {
+        document.getElementById('menu-hub').setAttribute('visible', 'true');
+        document.getElementById('visualizador').setAttribute('visible', 'false');
+      }
+    </script>
+
+    <a-scene background="color: #111" cursor="rayOrigin: mouse" raycaster="objects: .clicavel">
+      
       <a-assets>
-        <a-asset-item id="modelo" src="mod2.glb"></a-asset-item>
+        <a-asset-item id="item1" src="modelo3d.glb"></a-asset-item>
+        <a-asset-item id="item2" src="mod2.glb"></a-asset-item>
+        <img id="thumb1" src="foto_modelo1.jpg">
+        <img id="thumb2" src="foto_modelo2.jpg">
       </a-assets>
 
-      <a-entity 
-        id="meuObjeto"
-        gltf-model="#modelo" 
-        position="0 1.2 -2" 
-        scale="1 1 1"
-        drag-rotate-component="speed: 2">
+      <a-entity id="menu-hub" visible="true">
+        <a-text value="Selecione um Modelo" position="0 2.5 -3" align="center" color="#FFF"></a-text>
+        
+        <a-image src="#thumb1" position="-1 1.5 -3" class="clicavel" 
+                 onclick="irParaModelo('item1')"
+                 animation__hover="property: scale; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 200"
+                 animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200">
+        </a-image>
+
+        <a-image src="#thumb2" position="1 1.5 -3" class="clicavel" 
+                 onclick="irParaModelo('item2')"
+                 animation__hover="property: scale; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 200"
+                 animation__leave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 200">
+        </a-image>
+      </a-entity>
+
+      <a-entity id="visualizador" visible="false">
+        <a-entity id="modelo-real" gltf-model="" position="0 1.2 -2" drag-rotate></a-entity>
+        
+        <a-box position="0 0.1 -1" scale="0.5 0.1 0.3" color="red" class="clicavel" onclick="voltarAoMenu()">
+          <a-text value="VOLTAR" align="center" position="0 0.6 0" rotation="-90 0 0" width="4"></a-text>
+        </a-box>
       </a-entity>
 
       <a-entity light="type: ambient; intensity: 0.7"></a-entity>

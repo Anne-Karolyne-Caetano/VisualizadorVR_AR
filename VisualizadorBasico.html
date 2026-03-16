@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Girar Modelo 3D - Quest 3S</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+
+    <script>
+
+AFRAME.registerComponent('drag-rotate-component', {
+        schema: { speed: { default: 1 } },
+        init: function () {
+          this.ifMouseDown = false;
+          this.x_cord = 0;
+          this.y_cord = 0;
+          
+          // Eventos para Mouse e Toque (Quest)
+          document.addEventListener('mousedown', this.OnDocumentMouseDown.bind(this));
+          document.addEventListener('mouseup', this.OnDocumentMouseUp.bind(this));
+          document.addEventListener('mousemove', this.OnDocumentMouseMove.bind(this));
+        },
+        OnDocumentMouseDown: function (event) {
+          this.ifMouseDown = true;
+          this.x_cord = event.clientX;
+          this.y_cord = event.clientY;
+        },
+        OnDocumentMouseUp: function () {
+          this.ifMouseDown = false;
+        },
+        OnDocumentMouseMove: function (event) {
+          if (this.ifMouseDown) {
+            var temp_x = event.clientX - this.x_cord;
+            var temp_y = event.clientY - this.y_cord;
+            // Gira o objeto nos eixos Y e X
+            this.el.object3D.rotation.y += temp_x * (this.data.speed / 100);
+            this.el.object3D.rotation.x += temp_y * (this.data.speed / 100);
+            this.x_cord = event.clientX;
+            this.y_cord = event.clientY;
+          }
+        }
+      });
+
+      //Versionamento para impedir erro de cache
+    window.addEventListener('DOMContentLoaded', () => {
+    const v = Math.random(); // Gera um número aleatório
+    const assets = document.querySelectorAll('a-asset-item');
+    assets.forEach(asset => {
+      const currentSrc = asset.getAttribute('src');
+      asset.setAttribute('src', currentSrc + '?v=' + v);
+    });
+  });
+    </script>
+    
+
+    <a-scene background="color: #fff">
+      <a-assets>
+        <a-asset-item id="modelo" src="mod2.glb"></a-asset-item>
+      </a-assets>
+
+      <a-entity 
+        id="meuObjeto"
+        gltf-model="#modelo" 
+        position="0 1.2 -2" 
+        scale="1 1 1"
+        drag-rotate-component="speed: 2">
+      </a-entity>
+
+      <a-entity light="type: ambient; intensity: 0.7"></a-entity>
+      <a-entity light="type: directional; intensity: 1" position="1 3 1"></a-entity>
+
+      <a-entity camera position="0 1.6 0" look-controls="enabled: false"></a-entity>
+      
+    </a-scene>
+  </body>
+</html>
